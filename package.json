@@ -1,0 +1,34 @@
+{
+  "name": "backend-ecommerce",
+  "version": "1.0.0",
+  "description": "Backend genérico para e-commerce",
+  "main": "app.js",
+  "scripts": {
+    "test": "e-commerce",
+    "start": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GastonMGrecco/backend-ecommerce.git"
+  },
+  "keywords": [
+    "e-commerce"
+  ],
+  "author": "GastónMGrecco",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GastonMGrecco/backend-ecommerce/issues"
+  },
+  "homepage": "https://github.com/GastonMGrecco/backend-ecommerce#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
+    "jsonwebtoken": "^8.5.1",
+    "pg": "^8.7.3",
+    "sequelize": "^6.17.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  }
+}

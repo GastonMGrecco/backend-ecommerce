@@ -1,0 +1,99 @@
+const { Carts } = require('../models/carts');
+const { Orders } = require('../models/orders');
+const { Products } = require('../models/products');
+const { ProductsInCart } = require('../models/productsIncart');
+const { Users } = require('../models/users');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
+const { catchAsync } = require('../utils/catchAsync');
+const { AppError } = require('../utils/appErrors');
+
+dotenv.config({ path: './config.env' });
+
+exports.createNewUser = catchAsync(async (req, res, next) => {
+  const { username, email, password } = req.body;
+  if (!username || !email || !password) {
+    return next(new AppError(400, 'Complete all datas'));
+  }
+  const salt = await bcrypt.genSalt(12);
+  const encryptedPassword = await bcrypt.hash(password, salt);
+
+  const newUser = await Users.create({
+    username,
+    email,
+    password: encryptedPassword
+  });
+  newUser.password = undefined;
+  res.status(201).json({
+    status: 'sucess',
+    data: newUser
+  });
+});
+
+exports.loginUser = catchAsync(async (req, res, next) => {
+  const { email, password } = req.body;
+
+  const user = await Users.findOne({ where: { email } });
+
+  if (!user || !(await bcrypt.compare(password, usuario.password))) {
+    return next(new AppError(400, 'E-mail or password invalid'));
+  }
+
+  const token = await jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN
+  });
+
+  res.status(201).json({
+    status: 'sucess',
+    data: token
+  });
+});
+
+exports.getProductsMe = catchAsync(async (req, res, next) => {});
+
+exports.updateUser = catchAsync(async (req, res, next) => {
+  const { username, email, password } = req.body;
+  const { id } = req.params;
+
+  const salt = await bcrypt.genSalt(12);
+  const newEncryptedPassword = await bcrypt.hash(password, salt);
+
+  const userUpdated = {
+    username,
+    email,
+    password: newEncryptedPassword
+  };
+
+  const userToUpdate = Users.findOne({ where: { id } });
+
+  if (!userToUpdate) {
+    return next(new AppError(400, 'User does not exist'));
+  }
+
+  const user = userToUpdate.update({ ...userUpdated });
+  res.status(201).json({
+    status: 'sucess',
+    message: 'User updated'
+  });
+});
+
+exports.deleteUser = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+
+  const userToDelete = await Users.findOne({ where: { id, status: 'active' } });
+  if (!userToDelete) {
+    return next(new AppError(400, 'User does exist'));
+  }
+
+  await userToDelete.update({ status: 'deleted' });
+
+  res.status(201).json({
+    status: 'sucess',
+    message: 'User deleted'
+  });
+});
+
+exports.getAllOrders = catchAsync(async (req, res, next) => {});
+
+exports.getOrderById = catchAsync(async (req, res, next) => {});
