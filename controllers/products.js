@@ -27,7 +27,7 @@ exports.createProduct = catchAsync(async (req, res, next) => {
 exports.getAllProducts = catchAsync(async (req, res, next) => {
   const products = await Products.findAll({
     where: { status: 'active' },
-    include: [{ model: Users }]
+    include: [{ model: Users, attributes: { exclude: ['password'] } }]
   });
   res.status(201).json({
     status: 'succes',
@@ -40,7 +40,7 @@ exports.getProductsById = catchAsync(async (req, res, next) => {
 
   const product = await Products.findOne({
     where: { status: 'active', id },
-    include: [{ model: Users }]
+    include: [{ model: Users, attributes: { exclude: ['password'] } }]
   });
   if (!product) {
     return next(new AppError(400, 'Product does not exist'));

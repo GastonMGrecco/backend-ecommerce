@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../utils/database.js');
 
-const ProductsInCart = sequelize.define('poductInCart', {
+const ProductsInCart = sequelize.define('productInCart', {
   id: {
     primaryKey: true,
     autoIncrement: true,

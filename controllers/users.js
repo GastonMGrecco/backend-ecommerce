@@ -34,9 +34,9 @@ exports.createNewUser = catchAsync(async (req, res, next) => {
 exports.loginUser = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
-  const user = await Users.findOne({ where: { email } });
+  const user = await Users.findOne({ where: { email, status: 'active' } });
 
-  if (!user || !(await bcrypt.compare(password, usuario.password))) {
+  if (!user || !(await bcrypt.compare(password, user.password))) {
     return next(new AppError(400, 'E-mail or password invalid'));
   }
 
@@ -55,23 +55,29 @@ exports.getProductsMe = catchAsync(async (req, res, next) => {});
 exports.updateUser = catchAsync(async (req, res, next) => {
   const { username, email, password } = req.body;
   const { id } = req.params;
+  let userUpdated;
 
-  const salt = await bcrypt.genSalt(12);
-  const newEncryptedPassword = await bcrypt.hash(password, salt);
+  if (password) {
+    const salt = await bcrypt.genSalt(12);
+    const newEncryptedPassword = await bcrypt.hash(password, salt);
+    userUpdated = {
+      username,
+      email,
+      password: newEncryptedPassword
+    };
+  } else {
+    userUpdated = {
+      username,
+      email
+    };
+  }
 
-  const userUpdated = {
-    username,
-    email,
-    password: newEncryptedPassword
-  };
-
-  const userToUpdate = Users.findOne({ where: { id } });
+  const userToUpdate = await Users.findOne({ where: { id } });
 
   if (!userToUpdate) {
     return next(new AppError(400, 'User does not exist'));
   }
-
-  const user = userToUpdate.update({ ...userUpdated });
+  await userToUpdate.update({ ...userUpdated });
   res.status(201).json({
     status: 'sucess',
     message: 'User updated'

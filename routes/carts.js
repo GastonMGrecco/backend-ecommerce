@@ -10,10 +10,10 @@ const {
 
 route.post('/add-product', createAddProductInCart);
 
-route.patch('/update-cart', updateProductCart);
+route.patch('/:updatecart', updateProductCart);
 
 route.delete('/:productId', deleteProductCart);
 
-route.post('/purchase', purchaseProuctCart);
+route.post('/:purchase', purchaseProuctCart);
 
 module.exports = { cartsRoutes: route };

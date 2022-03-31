@@ -4,6 +4,7 @@ const { sequelize } = require('../utils/database.js');
 const Carts = sequelize.define('cart', {
   id: {
     primaryKey: true,
+    autoIncrement: true,
     type: DataTypes.INTEGER,
     allowNull: false
   },

@@ -17,10 +17,7 @@ const Relationships = () => {
   Carts.hasOne(Orders);
   Orders.belongsTo(Carts);
 
-  Carts.hasMany(ProductsInCart);
-  ProductsInCart.belongsTo(Carts);
-
-  ProductsInCart.hasOne(Products);
-  Products.belongsTo(ProductsInCart);
+  Carts.belongsToMany(Products, { through: ProductsInCart });
+  Products.belongsToMany(Carts, { through: ProductsInCart });
 };
 module.exports = { Relationships };
