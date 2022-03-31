@@ -1,5 +1,6 @@
 const express = require('express');
 const route = express.Router();
+const { validateSesion } = require('../utils/authSesion');
 
 const {
   createProduct,
@@ -8,6 +9,8 @@ const {
   getAllProducts,
   getProductsById
 } = require('../controllers/products');
+
+route.use(validateSesion);
 
 route.post('/', createProduct);
 

@@ -13,6 +13,7 @@ exports.createAddProductInCart = catchAsync(async (req, res, next) => {
       new AppError(400, 'Must provide an cartId,productId and quantity')
     );
   }
+
   const product = await Products.findOne({
     where: { status: 'active', id: productId }
   });
@@ -35,11 +36,18 @@ exports.createAddProductInCart = catchAsync(async (req, res, next) => {
       )
     );
   }
-  await ProductsInCart.create({
-    cartId: newCart.id,
-    productId,
-    quantity
-  });
+
+  const productInCart = await ProductsInCart.findOne({ where: { productId } });
+
+  if (productInCart) {
+    await productInCart.update({ ...{ status: 'active', quantity } });
+  } else {
+    await ProductsInCart.create({
+      cartId: newCart.id,
+      productId,
+      quantity
+    });
+  }
 
   const newProductsInCart = await ProductsInCart.findOne({
     where: { status: 'active', cartId: newCart.id, productId }
@@ -117,23 +125,34 @@ exports.purchaseProuctCart = catchAsync(async (req, res, next) => {
   const cart = await ProductsInCart.findAll({
     where: { status: 'active', cartId: cartUser.id }
   });
-
+  let totalPrice = 0;
+  let price = 0;
   const actualizacion = cart.map(async (product) => {
     const productCreated = await Products.findOne({
       where: { status: 'active', id: product.productId }
     });
     const subtract = productCreated.quantity - product.quantity;
+    price = productCreated.price * product.quantity;
+    totalPrice = totalPrice + price;
     if (subtract <= 0) {
-      productCreated.update({ status: 'deleted',quantity:0 });
+      productCreated.update({ status: 'deleted', quantity: 0 });
     }
-    await product.update({status:'purchase'});
+    await product.update({ status: 'purchase' });
     return await productCreated.update({ quantity: subtract });
   });
 
   const producUpdated = await Promise.all(actualizacion);
-  await cartUser.update({status:'purchase'});
+
+  const order = await Orders.create({
+    userId: purchase,
+    cartId: cartUser.id,
+    issuedAt: 'algo',
+    totalPrice: totalPrice
+  });
+
+  await cartUser.update({ status: 'purchase' });
   res.status(201).json({
     status: 'sucess',
-    data: { cartUser, cart, product, actualizacion, producUpdated }
+    data: { cartUser, cart, product, actualizacion, producUpdated, order }
   });
 });

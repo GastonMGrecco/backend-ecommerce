@@ -50,7 +50,15 @@ exports.loginUser = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getProductsMe = catchAsync(async (req, res, next) => {});
+exports.getProductsMe = catchAsync(async (req, res, next) => {
+  const { id } = req.currentUser;
+
+  const myProductsCreated = await Products.findAll({ where: { userId: id } });
+  res.status(201).json({
+    status: 'sucess',
+    data: myProductsCreated
+  });
+});
 
 exports.updateUser = catchAsync(async (req, res, next) => {
   const { username, email, password } = req.body;
@@ -100,6 +108,26 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getAllOrders = catchAsync(async (req, res, next) => {});
+exports.getAllOrders = catchAsync(async (req, res, next) => {
+  const { id } = req.currentUser;
 
-exports.getOrderById = catchAsync(async (req, res, next) => {});
+  const myOrders = await Orders.findAll({ where: { userId: id } });
+  res.status(201).json({
+    status: 'sucess',
+    data: myOrders
+  });
+});
+
+exports.getOrderById = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const { userId = id } = req.currentUser;
+
+  const myOrderById = await Orders.findAll({ where: { userId, id } });
+  if (!myOrderById) {
+    return next(new AppError(400, 'Order doest exist'));
+  }
+  res.status(201).json({
+    status: 'sucess',
+    data: myOrderById
+  });
+});

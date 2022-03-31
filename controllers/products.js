@@ -5,10 +5,12 @@ const { ProductsInCart } = require('../models/productsIncart');
 const { Users } = require('../models/users');
 const { catchAsync } = require('../utils/catchAsync');
 const { AppError } = require('../utils/appErrors');
+const jwt = require('jsonwebtoken');
 
 exports.createProduct = catchAsync(async (req, res, next) => {
-  const { title, description, quantity, price, userId } = req.body;
-  if (!title || !description || !quantity || !price || !userId) {
+  const { userId = id } = req.currentUser;
+  const { title, description, quantity, price } = req.body;
+  if (!title || !description || !quantity || !price) {
     return next(new AppError(400, 'Complete all datas'));
   }
   const newProduct = await Products.create({
@@ -53,7 +55,8 @@ exports.getProductsById = catchAsync(async (req, res, next) => {
 
 exports.updateProduct = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const { title, description, quantity, price, userId } = req.body;
+  const { userId = id } = req.currentUser;
+  const { title, description, quantity, price } = req.body;
   const productUpdate = {
     title,
     description,
