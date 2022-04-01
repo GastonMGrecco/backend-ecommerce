@@ -10,7 +10,7 @@ exports.getCart = catchAsync(async (req, res, next) => {
   const { id } = req.currentUser;
 
   const cart = await Carts.findOne({
-    where: { userId: id },
+    where: { status: 'active', userId: id },
     include: [
       {
         model: Products,
