@@ -6,6 +6,36 @@ const { Users } = require('../models/users');
 const { catchAsync } = require('../utils/catchAsync');
 const { AppError } = require('../utils/appErrors');
 
+exports.getCart = catchAsync(async (req, res, next) => {
+  const { id } = req.currentUser;
+
+  const cart = await Carts.findOne({
+    where: { userId: id },
+    include: [
+      {
+        model: Products,
+        attributes: {
+          exclude: [
+            'quantity',
+            'updatedAt',
+            'createdAt',
+            'status',
+            'userId',
+            'price',
+            'description',
+            'id'
+          ]
+        }
+      }
+    ]
+  });
+
+  res.status(201).json({
+    status: 'sucess',
+    data: cart
+  });
+});
+
 exports.createAddProductInCart = catchAsync(async (req, res, next) => {
   const { productId, quantity, userId } = req.body;
   if (!productId || !quantity || !userId) {
@@ -59,15 +89,19 @@ exports.createAddProductInCart = catchAsync(async (req, res, next) => {
 });
 
 exports.updateProductCart = catchAsync(async (req, res, next) => {
-  const { updatecart } = req.params;
+  const { id } = req.currentUser;
   const { quantity, productId } = req.body;
+
+  const updatecart = await Carts.findOne({
+    where: { status: 'active', userId: id }
+  });
 
   const product = await Products.findOne({
     where: { status: 'active', id: productId }
   });
 
   const cart = await ProductsInCart.findOne({
-    where: { status: 'active', cartId: updatecart, productId }
+    where: { status: 'active', cartId: updatecart.id, productId }
   });
 
   if (!cart) {
@@ -114,12 +148,12 @@ exports.deleteProductCart = catchAsync(async (req, res, next) => {
 });
 
 exports.purchaseProuctCart = catchAsync(async (req, res, next) => {
-  const { purchase } = req.params;
+  const { id } = req.currentUser;
 
   const product = await Products.findAll({ where: { status: 'active' } });
 
   const cartUser = await Carts.findOne({
-    where: { status: 'active', userId: purchase }
+    where: { status: 'active', userId: id }
   });
 
   const cart = await ProductsInCart.findAll({
@@ -144,7 +178,7 @@ exports.purchaseProuctCart = catchAsync(async (req, res, next) => {
   const producUpdated = await Promise.all(actualizacion);
 
   const order = await Orders.create({
-    userId: purchase,
+    userId: id,
     cartId: cartUser.id,
     issuedAt: 'algo',
     totalPrice: totalPrice

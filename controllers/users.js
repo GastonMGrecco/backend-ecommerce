@@ -65,6 +65,11 @@ exports.updateUser = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   let userUpdated;
 
+  if (req.currentUser.id !== +id) {
+    return next(
+      new AppError(400, 'Currentser have not permissions to update this user')
+    );
+  }
   if (password) {
     const salt = await bcrypt.genSalt(12);
     const newEncryptedPassword = await bcrypt.hash(password, salt);
@@ -95,7 +100,14 @@ exports.updateUser = catchAsync(async (req, res, next) => {
 exports.deleteUser = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
+  if (req.currentUser.id !== +id) {
+    return next(
+      new AppError(400, 'Currentser have not permissions to update this user')
+    );
+  }
+
   const userToDelete = await Users.findOne({ where: { id, status: 'active' } });
+
   if (!userToDelete) {
     return next(new AppError(400, 'User does exist'));
   }

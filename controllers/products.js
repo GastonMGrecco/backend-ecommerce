@@ -8,7 +8,7 @@ const { AppError } = require('../utils/appErrors');
 const jwt = require('jsonwebtoken');
 
 exports.createProduct = catchAsync(async (req, res, next) => {
-  const { userId = id } = req.currentUser;
+  const { id } = req.currentUser;
   const { title, description, quantity, price } = req.body;
   if (!title || !description || !quantity || !price) {
     return next(new AppError(400, 'Complete all datas'));
@@ -18,7 +18,7 @@ exports.createProduct = catchAsync(async (req, res, next) => {
     description,
     quantity,
     price,
-    userId
+    userId: id
   });
   res.status(201).json({
     status: 'sucess',
@@ -79,12 +79,25 @@ exports.updateProduct = catchAsync(async (req, res, next) => {
 
 exports.deleteProduct = catchAsync(async (req, res, next) => {
   const { id } = req.params;
+
   const productToDelete = await Products.findOne({
     where: { status: 'active', id }
+
   });
+  
   if (!productToDelete) {
     return next(new AppError(400, 'Product does not exist'));
   }
+
+  if (req.currentUser.id !== productToDelete.userId) {
+    return next(
+      new AppError(
+        400,
+        'Current user have not permissions to delete this product'
+      )
+    );
+  }
+ 
   await productToDelete.update({ status: 'deleted' });
   res.status(201).json({
     status: 'succes',
